@@ -1,0 +1,252 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Bitcoin Wallet</title>
+    <link type="text/css" href="css/bootstrap.css" rel="stylesheet" />
+    <style>
+      body {
+        width: 239px;
+      }
+      #main {
+        border: 1px solid #dddddd;
+        border-bottom: 0px;
+        margin: 1px;
+      }
+      .block {
+        border-bottom: 1px solid #dddddd;
+        padding: 8px;
+      }
+      .block h3 {
+        line-height: 18px;
+      }
+      .tabselector {
+        text-decoration: none;
+      }
+      .hidden {
+        display: none !important;
+      }
+      ul {
+        padding: 0;
+        margin: 0;
+      }
+      .nav {
+        margin: 0;
+        padding-left: 35px;
+      }
+      .nav li {
+        padding-left: 10px;
+      }
+      li.active {
+        margin-bottom: 2px;
+      }
+      form {
+        margin: 0;
+        margin-top: 6px;
+      }
+      .transaction {
+        list-style: none;
+      }
+      .transaction.inc {
+        color: green;
+      }
+      .transaction.outg {
+        color: red;
+      }
+      .alert {
+        margin: 0px;
+      }
+      input[type=submit].btn {
+        float: right;
+      }
+      .control-group {
+        margin: 0;
+      }
+      #add-password .btn {
+        margin-left: 7px;
+        float: right;
+      }
+
+      #new-wallet .btn {
+        margin: 10px 10%;
+        margin-bottom: 0;
+        width: 80%;
+      }
+      
+      #gen-wallet .progress {
+        height: 10px;
+        margin-bottom: 0px;
+        margin-top: 9px;
+      }
+      
+      #gen-wallet form {
+        margin: 0;
+      }
+      
+    </style>
+
+    <script src="mustache.js"></script>
+    <script src="popup.js"></script>
+
+    <script id="new-wallet-template" type="text/x-mustache-template">
+      <div id="new-wallet" class="block">
+        <h2>Welcome!</h2>
+        <h6>No Bitcoin wallet found.</h6>
+        <button class="btn btn-large btn-primary" type="submit" id="create_new">
+          Create new wallet
+        </button>
+        <button class="btn btn-large" type="submit" id="import_old">
+          Use existing wallet
+        </button>
+      </div>
+    </script>
+    
+    <script id="gen-wallet-template" type="text/x-mustache-template">
+      <div id="gen-wallet" class="block">
+        <h3>Generating wallet</h3>
+        <div style="margin-top: 9px;">
+          Your {{#is_encrypted}}encrypted {{/is_encrypted}} seed is: <input type="text" name="seed" value="" readonly id="seed" />
+        </div>
+        <div class="alert alert-info">
+          Save it in a safe place.<br>
+          Use it to recover your wallet.
+        </div>
+        <div class="progress progress-striped active">
+          <div class="bar" id='stretch_progress' style="width:0%;"></div>
+        </div>
+        Stretching seed
+        <form>
+          <fieldset>
+            <input type="submit" name="gogogo" value="Continue" id="gogogo" class='btn' disabled />
+          </fieldset>
+        </form>
+      </div>
+    </script>
+    
+    <script id="restore-wallet-template" type="text/x-mustache-template">
+      <div id="restore-wallet" class="block">
+        <h3>Restore wallet</h3>
+        <form>
+          <fieldset>
+            <div class="control-group"><div class="controls">
+              <input type="text" name="seed" value="" id="seed" placeholder="Your seed" />
+            </div></div>
+            <div class="control-group"><div class="controls">
+              <input type="password" name="passwd" value="" placeholder="Password" class="hidden" />
+            </div></div>
+            <input type="submit" value="Restore" class="btn btn-primary" />
+          </fieldset>
+        </form>
+      </div>
+    </script>
+    
+    <script id="add-password-template" type="text/x-mustache-template">
+      <div id="add-password" class="block">
+        <h3>Create Password</h3>
+        <div>It is recommended that you encrypt your wallet with a password.</div>
+        <form id='add_passwd'>
+          <fieldset>
+            <div class="control-group">
+              <div class="controls">
+                <input type="password" name="new_passwd" value="" id="new_passwd" placeholder="Password" />
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="controls">
+                <input type="password" name="vfy_passwd" value="" id="vfy_passwd" placeholder="Repeat password"/>
+              </div>
+            </div>
+            <input type="submit" name="encrypt" value="Encrypt" class="btn btn-primary" id="encrypt" />
+            <button class="btn" id="skip">
+              Skip
+            </button>
+          </fieldset>
+        </form>
+        
+      </div>
+    </script>
+
+    <script id="main-template" type="text/x-mustache-template">
+      <div class="block">
+        <h3>{{balance}} BTC</h3>
+      </div>
+      <div class="block">
+        <h4>Recent transactions</h4>
+        <ul id="recent_transactions">
+          {{#transactions}}
+          <li class="transaction {{dir}}">
+            {{arrow}} {{amount}}
+            {{#num_confs}}[{{num_confs}}] {{/num_confs}}
+            {{label}}
+          </li>
+          {{/transactions}}
+          {{^transactions}}
+          <h6>-- no transactions --</h6>
+          {{/transactions}}
+        </ul>
+      </div>
+      <div class="block">
+        <ul id="tabs" class="nav nav-pills {{#sent_success}}hidden {{/sent_success}}" align="center">
+          <li><a href="#" class="tabselector">Send</a></li>
+          <li><a href="#" class="tabselector">Receive</a></li>
+        </ul>
+        <div id="send_tab" class="tab hidden">
+          <form id="send_form">
+            <fieldset>
+              <div class="control-group">
+                <div class="controls">
+                  <input type="text" name="to" value="" id="to" placeholder="BTC Address" />
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="controls">
+                  <div class="input-prepend" style="margin-bottom:10px;">
+                    <span class="add-on">BTC</span><input type="text" name="amount" value="" 
+                                                          id="amount" style="width:175px;" placeholder="0.0" />
+                  </div>
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="controls">
+                  <input type="text" name="label" value="" id="label" placeholder="Label (optional)" />
+                </div>
+              </div>
+              {{#keys_are_encrypted}}
+              <div class="control-group">
+                <div class="controls">
+                  <input type="password" name="passwd" value="" id="passwd" placeholder="Password" />
+                </div>
+              </div>
+              {{/keys_are_encrypted}}
+              <input class="btn btn-small" type="submit" value="Send"/>
+            </fieldset>
+          </form>
+        </div>
+        <div id="receive_tab" class="tab hidden">
+          <form id="receive_form">
+            <fieldset>
+              <input type="text" name="address" value="" id="address" readonly tabindex=1 />
+              <input type="text" name="label" value="" id="label" placeholder="Label" tabindex=2 />
+              <input class="btn btn-small" type="submit" value="Save label" id="some_name">
+            </fieldset>
+          </form>
+        </div>
+        <div id="sending" class="hidden alert alert-info">
+          Sending...
+        </div>
+        <div id="sent" class="{{^sent_success}}hidden {{/sent_success}} alert alert-success">
+          Transaction sent.
+        </div>
+        <div id="error" class="hidden alert alert-error">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          <strong>Error:</strong>
+          <span class="description"></span>
+        </div>
+      </div>
+    </script>
+  </head>
+  <body>
+    <div id="main">
+      
+    </div>
+  </body>
+</html>
