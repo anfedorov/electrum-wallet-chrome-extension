@@ -1,8 +1,8 @@
 // the library assumes we have a global window object, so we do a little trick
 window = {};
-importScripts("bitcoinjs-lib/src/crypto-js/crypto-min.js");
+importScripts("lib/bitcoinjs/src/crypto-js/crypto-min.js");
 var Crypto = window.Crypto;
-importScripts("bitcoinjs-lib/src/crypto-js/sha256-min.js");
+importScripts("lib/bitcoinjs/src/crypto-js/sha256-min.js");
 
 self.onmessage = function (e) {
   var first_seed = Crypto.charenc.UTF8.stringToBytes(e.data.seed),
