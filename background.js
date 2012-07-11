@@ -8,4 +8,4 @@ sh.init(rpc, wallet, ui);
 rpc.init(sh.handle_response);
 
 rpc.go();
-wallet.extendAddressChain();
+if (km.isReady()) wallet.extendAddressChain();

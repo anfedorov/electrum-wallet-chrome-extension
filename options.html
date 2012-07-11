@@ -12,8 +12,27 @@
       display: none;
     }
     
-    input[type=text] {
+    input {
       margin-bottom: 0px;
+    }
+    
+    #seed_tab #seed_value {
+      width: 239px;
+    }
+    #seed_tab .control-group,
+    #seed_tab form {
+      margin-bottom: 0px;
+    }
+    #seed_tab .alert {
+      width: 224px;
+      padding-right: 9px;
+    }
+    #seed_tab #alert-description {
+      padding-bottom: 9px;
+    }
+    #seed_tab #pass_error {
+      color: red;
+      padding-left: 9px;
     }
     </style>
 
@@ -58,20 +77,45 @@
     </script>
 
     <script id="seed-template" type="text/x-handlebars-template">
-      Seed: <span id="seed"></span>
-      <div id="is_encrypted">
-        Seed and private keys are encrypted. To decrypt, please enter your password:
+      <h3>Seed</h3>
+      <input type="text" name="seed_value" value="" readonly id="seed_value" />
+      <div id="is_encrypted" class="hidden alert alert-info">
+        <div id="alert-description">
+          <div>Seed and private keys are encrypted.</div>
+          <div>To decrypt, enter your password:</div>
+        </div>
         <form>
-          <input type="password" name="passwd" value="" id="passwd">
-          <input type="submit" name="submit" value="Decrypt" id="submit">
+          <fieldset>
+            <div class="control-group"><div class="controls">
+              <input type="password" name="passwd" value="" id="passwd" placeholder="Password">
+            </div></div>
+            <input type="submit" name="submit" value="Decrypt" id="submit" class="btn btn-primary">
+            <span id="pass_error" class="hidden">wrong password</span>
+          </fieldset>
         </form>
       </div>
-      <div id="not_encrypted">
-        
+      <div id="not_encrypted" class="hidden alert alert-warning">
+        <b>Warning!</b>
+        <div id="alert-description">
+          Seed and private keys are being stored unencrypted. To encrypt them, enter a password:
+        </div>
+        <form>
+          <fieldset>
+            <div class="control-group"><div class="controls">
+              <input type="password" name="passwd" value="" id="passwd" placeholder="Password">
+            </div></div>
+            <div class="control-group"><div class="controls">
+              <input type="password" name="passwd_conf" value="" id="passwd_conf" placeholder="Repeat password">
+            </div></div>
+            <input type="submit" name="submit" value="Encrypt" id="submit" class="btn btn-primary">
+            <span id="pass_error" class="hidden">passwords must match</span>
+          <fieldset>
+        </form>
       </div>
     </script>
 
     <script id="transactions-template" type="text/x-handlebars-template">
+    <h3>Transactions</h3>
     <table class="table table-striped table-bordered">
       <thead>
         <tr>
@@ -93,6 +137,7 @@
     </script>
 
     <script id="accounts-template" type="text/x-handlebars-template">
+    <h3>Accounts</h3>
     <table class="table table-striped table-bordered">
       <thead>
         <tr>
@@ -123,45 +168,31 @@
           <a class="brand" href="#">Bitcoin Wallet Options</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="active">
-                <a href="#" class="tabselector">General</a>
+              <li>
+                <a href="#general" id="general" class="tabselector">General</a>
               </li>
-              <li class="">
-                <a href="#" class="tabselector">Encryption</a>
+              <li >
+                <a href="#seed" id="seed" class="tabselector">Seed</a>
               </li>
-              <li class="">
-                <a href="#" class="tabselector">Transactions</a>
+              <li >
+                <a href="#transactions" id="transactions" class="tabselector">Transactions</a>
               </li>
-              <li class="">
-                <a href="#" class="tabselector">Accounts</a>
+              <li >
+                <a href="#accounts" id="accounts" class="tabselector">Accounts</a>
               </li>
               <li class="divider-vertical"></li>
-              <li class="">
-                <a href="#" class="tabselector">About</a>
+              <li >
+                <a href="#about" id="about" class="tabselector">About</a>
               </li>
             </ul>
           </div>
         </div>
       </div>
     </div>
-    <div id="general_tab" class="container tab">
-      <div id="general">
-      </div>
-    </div>
-    <div id="encryption_tab" class="container tab hidden">
-      <div id="encryption">
-      </div>
-    </div>
-    <div id="accounts_tab" class="container tab hidden">
-      <h3>Accounts</h3>
-      <div id="accounts">
-      </div>
-    </div>
-    <div id="transactions_tab" class="container tab hidden">
-      <h3>Transactions</h3>
-      <ul id="transactions">
-      </ul>
-    </div>
+    <div id="general_tab" class="container tab hidden"></div>
+    <div id="seed_tab" class="container tab hidden"></div>
+    <div id="accounts_tab" class="container tab hidden"></div>
+    <div id="transactions_tab" class="container tab hidden"></div>
     <div id="about_tab" class="container tab hidden">
       <h3>About</h3>
       Bitcoin Wallet v0.1<br>

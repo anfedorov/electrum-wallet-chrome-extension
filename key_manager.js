@@ -12,7 +12,7 @@ var KeyManager = function () {
   
   function encrypt(s, passwd) {
     var k = Crypto.SHA256(Crypto.util.hexToBytes(Crypto.SHA256(passwd)), {asBytes: true});
-    return Crypto.AES.encrypt(s, k, {mode: new Crypto.mode.CBC(Crypto.pad.iso10126)});    
+    return Crypto.AES.encrypt(s, k, {mode: new Crypto.mode.CBC(Crypto.pad.iso10126)});
   }
   
   function priv_to_pub(priv_key) {

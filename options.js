@@ -1,7 +1,9 @@
-var bp = chrome.extension.getBackgroundPage();
+var bp = chrome.extension.getBackgroundPage(),
+    doc = document;
 
 function selectTab(e) {
-  var tab_id = e.target.innerText.toLowerCase() + "_tab",
+  var tab_name = e.target.text.toLowerCase(),
+      tab_id = tab_name + "_tab",
       tabs = document.getElementsByClassName("tab");
 
   var ts = document.querySelectorAll('.tabselector');
@@ -21,7 +23,7 @@ function selectTab(e) {
 
 function render_tab(tab_name, data) {
   var tmpl = document.querySelector('#' + tab_name + '-template').innerHTML,
-      tab = document.querySelector('#' + tab_name);
+      tab = document.querySelector('#' + tab_name + "_tab");
   tab.innerHTML = Mustache.to_html(tmpl, data);
   return tab;
 }
@@ -57,15 +59,13 @@ document.addEventListener('DOMContentLoaded', function () {
     ts[i].onclick = selectTab;
   }
   
-  render_tab('accounts', {accounts: bp.ui.getAddrs()});
-  render_tab('transactions', {transactions: bp.ui.getTxs()});
-  var generalTab = render_tab('general', bp.config)
+  var generalTab = render_tab('general', bp.config);
 
   generalTab.querySelector("#available_servers").ondblclick = function () {
     var addrInput = generalTab.querySelector("#server_address");
     addrInput.value = this.value;
     addrInput.oninput.call(addrInput);
-  }
+  };
 
   generalTab.querySelector("#default_fee").oninput = gen_validate_number(0,0.1,false);
   generalTab.querySelector("#txs_shown").oninput = gen_validate_number(2,10,true);
@@ -91,14 +91,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!e) this.select();
       return false;
     }
-  }
+  };
   
   generalTab.querySelector("#revert").onclick = function () {
     this.form.server_address.value = this.form.was_server_address.value;
     this.form.confs_required.value = this.form.was_confs_required.value;
     this.form.txs_shown.value = this.form.was_txs_shown.value;
     this.form.default_fee.value = this.form.was_default_fee.value;
-  }
+  };
   
   generalTab.querySelector("form").onsubmit = function () {
     if (this.server_address.oninput.call(this.server_address)
@@ -115,6 +115,76 @@ document.addEventListener('DOMContentLoaded', function () {
       })
       return true;
     }
+  };
+  
+  var seedTab = render_tab('seed', {});
+
+  seedTab.querySelector("#seed_value").onclick = function () { this.select(); };
+  seedTab.querySelector("#seed_value").value = bp.wallet.getSeed();
+
+  if (bp.km.isEncrypted()) {
+    seedTab.querySelector("#is_encrypted").classList.remove("hidden");
+    seedTab.querySelector("#is_encrypted form").onsubmit = function () {
+      var pass_error = this.querySelector("#pass_error"),
+          that = this;
+      
+      if (bp.km.checkPw(this.passwd.value)) {
+        bp.km.decryptMasterPrivKey(this.passwd.value);
+        bp.wallet.saveSeed(bp.km.decrypt(bp.wallet.getSeed(), this.passwd.value));
+        return true;
+      } else {
+        this.passwd.parentElement.parentElement.classList.add("error");
+        pass_error.classList.remove("hidden");
+        this.passwd.oninput = function () {
+          that.passwd.parentElement.parentElement.classList.remove("error");
+          pass_error.classList.add("hidden");
+        }
+        return false;
+      }
+    }
+  } else {
+    seedTab.querySelector("#not_encrypted").classList.remove("hidden");
+    seedTab.querySelector("#not_encrypted form").onsubmit = function () {
+      var pass_error = this.querySelector("#pass_error"),
+          that = this;
+      
+      this.passwd.oninput = this.passwd_conf.oninput = function () {
+        seedTab.querySelector("#pass_error").classList.add("hidden");
+        that.passwd.parentElement.parentElement.classList.remove("error");
+        that.passwd_conf.parentElement.parentElement.classList.remove("error");
+        that.passwd.oninput = that.passwd_conf.oninput = null;
+      }
+      
+      if (this.passwd.value !== this.passwd_conf.value) {
+        pass_error.innerHTML = "passwords must match";
+        pass_error.classList.remove("hidden");
+        this.passwd.parentElement.parentElement.classList.add("error");
+        this.passwd_conf.parentElement.parentElement.classList.add("error");
+        this.passwd.select();
+        return false;
+      }
+
+      if (!this.passwd.value) {
+        pass_error.innerHTML = "pass can't be empty";
+        pass_error.classList.remove("hidden");
+        this.passwd.select();
+        return false;
+      }
+
+      bp.wallet.saveSeed(bp.km.encrypt(bp.wallet.getSeed(), this.passwd.value));
+      bp.km.encryptMasterPrivKey(this.passwd.value);
+      return true;
+    }
+  }
+
+  render_tab('accounts', {accounts: bp.ui.getAddrs()});
+  render_tab('transactions', {transactions: bp.ui.getTxs()});
+  
+  window.onhashchange = function () {
+    var openTab = document.querySelector(document.location.hash || "#general");
+    openTab.onclick.call(openTab, {target: openTab});
   }
   
+  if (document.location.hash) window.onhashchange();
+  document.location.hash = document.location.hash || "#general";
 });
