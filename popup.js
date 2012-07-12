@@ -291,12 +291,19 @@ document.addEventListener('DOMContentLoaded', function () {
         bp.km.password = false;
       };
       main.querySelector('#add_passwd').onsubmit = function () {
+        var that = this;
         if (typeof(bp.km.password) == 'undefined') {
           if (this.new_passwd.value && this.new_passwd.value == this.vfy_passwd.value) {
             bp.km.password = this.new_passwd.value;
+            return true;
           } else {
             this.new_passwd.parentElement.parentElement.classList.add("error");
             this.vfy_passwd.parentElement.parentElement.classList.add("error");
+            this.new_passwd.oninput = this.vfy_passwd.oninput = function () {
+              that.new_passwd.parentElement.parentElement.classList.remove("error");
+              that.vfy_passwd.parentElement.parentElement.classList.remove("error");
+              that.new_passwd.oninput = that.vfy_passwd.oninput = null;
+            };
             return false;
           }
         }
@@ -307,8 +314,15 @@ document.addEventListener('DOMContentLoaded', function () {
       var main = render('restore-wallet'),
           form = main.querySelector("form");
       
+      form.querySelector("input").select();
+      
       form.seed.oninput = function () {
-        this.value = this.value.replace(/^\s+|\s+$/g, '');
+        this.value = this.value.replace(/\s+/g, '');
+        if (!this.value) {
+          this.parentElement.parentElement.classList.remove("error");
+          this.parentElement.parentElement.classList.remove("success");
+          return;
+        }
         try {
           if (bp.km.seedEncrypted(this.value)) {
             form.passwd.classList.remove("hidden");
@@ -321,12 +335,20 @@ document.addEventListener('DOMContentLoaded', function () {
             this.parentElement.parentElement.classList.remove("error");
           }
         } catch (e) {
+          // not a seed
           this.parentElement.parentElement.classList.add("error");
           this.parentElement.parentElement.classList.remove("success");
         }
       };
       
       form.passwd.onblur = function () {
+        var that = this;
+        this.oninput = function () {
+          this.parentElement.parentElement.classList.remove("error");
+          this.parentElement.parentElement.classList.remove("success");
+          that.oninput = null;
+        }
+        
         try {
           if (bp.km.seedEncrypted(bp.km.decrypt(form.seed.value, this.value))) {
             this.parentElement.parentElement.classList.add("error");
@@ -342,6 +364,7 @@ document.addEventListener('DOMContentLoaded', function () {
       };
       
       main.querySelector("form").onsubmit = function () {
+        this.passwd.onblur();
         try {
           if (!bp.km.seedEncrypted(this.seed.value)
               || !bp.km.seedEncrypted(bp.km.decrypt(this.seed.value, this.passwd.value))) {
