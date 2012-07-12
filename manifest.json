@@ -27,7 +27,7 @@
   "browser_action": {
       "name": "BC",
       "default_popup": "popup.html",
-      "default_icon": "bitcoin_gray.png"
+      "default_icon": "img/bitcoin_gray.png"
   },
   "manifest_version": 2
 }

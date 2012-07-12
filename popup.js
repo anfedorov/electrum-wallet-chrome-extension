@@ -1,5 +1,17 @@
 var bp = chrome.extension.getBackgroundPage();
 
+
+chrome.extension.onMessage.addListener(
+  function(r) {
+    if (r.type == "history_updated") {
+      var main = document.querySelector('#main'), 
+          new_main = render("main", {}, true);
+
+      main.querySelector("#balance").innerHTML = new_main.querySelector("#balance").innerHTML;
+      main.querySelector("#recent_txs").innerHTML = new_main.querySelector("#recent_txs").innerHTML;
+    }
+  });
+
 function selectTab(e) {
   var tab_id = e.target.innerText.toLowerCase() + "_tab",
       tabs = document.getElementsByClassName("tab");
@@ -127,9 +139,10 @@ function validate_passwd(e) {
   
 }
 
-function render(tmplName, tmplData) {
+function render(tmplName, tmplData, returnNewDiv) {
   var tmpl = document.querySelector('#' + tmplName + '-template').innerHTML,
-      main = document.querySelector('#main');
+      main = returnNewDiv ? document.createElement("div")
+                          : document.querySelector('#main');
   
   if (tmplName == 'main') {
     bp.misc.obj_merge(tmplData, bp.ui.popupData());

@@ -7,15 +7,25 @@ var UI = function UI (wallet, rpc) {
       connected = false,
       that;
   
-  rpc.onConnect = function () {
-    connected = true;
-    that.updateBadge();
-  }
+  chrome.extension.onMessage.addListener(function (r) {
+    if (r.type == "history_updated") {
+      that.updateBadge(r.txs);
+    }
+  });
   
-  rpc.onDisconnect = function () {
-    connected = false;
-    that.updateBadge();
-  }
+  chrome.extension.onMessage.addListener(function(r) {
+    if (r.type == "server_connect") {
+      connected = true;
+      that.updateBadge();
+    }
+  });
+  
+  chrome.extension.onMessage.addListener(function(r) {
+    if (r.type == "server_disconnect") {
+      connected = false;
+      that.updateBadge();
+    }
+  });
   
   return {
     "init": function () {
@@ -93,8 +103,8 @@ var UI = function UI (wallet, rpc) {
       }
     },
     
-    "updateBadge": function () {
-      var txs = wallet.getLatestTxs(),
+    "updateBadge": function (txs) {
+      var txs = txs || wallet.getLatestTxs(),
           n = 0;
       
       for (var i=0; i < txs.length; i++) {
@@ -108,7 +118,7 @@ var UI = function UI (wallet, rpc) {
       chrome.browserAction.setBadgeBackgroundColor({color: connected ? [208, 0, 24, 255] : [190, 190, 190, 230]});
       // chrome.browserAction.setBadgeText({text: connected ? String(n || "") : String(n || "?")});
       chrome.browserAction.setBadgeText({text: String(n || "")});
-      chrome.browserAction.setIcon({path: connected ? "bitcoin.png" : "bitcoin_gray.png"});
+      chrome.browserAction.setIcon({path: connected ? "img/bitcoin.png" : "img/bitcoin_gray.png"});
     },
     
     "receive": function (label, addr) {

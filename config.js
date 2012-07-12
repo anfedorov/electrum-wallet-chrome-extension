@@ -21,9 +21,6 @@ var config = (function () {
     },
     
     setOptions: function (opts) {
-      if (opts.server_address != options.server_address) {
-        console.log("new server");
-      }
       misc.obj_merge(options, opts);
       this.save();
     },

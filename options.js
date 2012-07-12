@@ -59,6 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
     ts[i].onclick = selectTab;
   }
   
+  // ----------- //
+  // General tab //
+  // ----------- //
   var generalTab = render_tab('general', bp.config);
 
   generalTab.querySelector("#available_servers").ondblclick = function () {
@@ -107,6 +110,9 @@ document.addEventListener('DOMContentLoaded', function () {
         + this.default_fee.oninput.call(this.default_fee) < 4) {
       return false;
     } else {
+      if (this.server_address.value != this.was_server_address.value) {
+        bp.rpc.changeHost(this.server_address.value);
+      }
       bp.config.setOptions({
         server_address: this.server_address.value,
         confs_required: this.confs_required.value,
@@ -117,6 +123,46 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
   
+  var host;
+  
+  if (host = bp.rpc.isConnected()) {
+    generalTab.querySelector("#connection_status").innerHTML = "(connected to " + host + ")";
+    generalTab.querySelector("#connection_status").style.color = "green";
+  } else {
+    generalTab.querySelector("#connection_status").innerHTML = "(not connected)";
+    generalTab.querySelector("#connection_status").style.color = "red";
+  }
+  
+  chrome.extension.onMessage.addListener(function(r) {
+    switch (r.type) {
+      case "server_connect":
+        if (host = bp.rpc.isConnected()) {
+          generalTab.querySelector("#connection_status").innerHTML = "(connected to " + host + ")";
+          generalTab.querySelector("#connection_status").style.color = "green";
+        }
+        break;
+      
+      case "server_disconnect":
+        if (!bp.rpc.isConnected()) {
+          generalTab.querySelector("#connection_status").innerHTML = "(not connected)";
+          generalTab.querySelector("#connection_status").style.color = "red";
+        }
+        break;
+        
+      case "history_updated":
+        render_tab('transactions', { transactions: bp.ui.getTxs() });
+        render_tab('accounts', { accounts: bp.ui.getAddrs() });
+        break;
+    }
+  });
+  
+  chrome.extension.onMessage.addListener(function(r) {
+    
+  });
+  
+  // -------- //
+  // Seed tab //
+  // -------- //
   var seedTab = render_tab('seed', {});
 
   seedTab.querySelector("#seed_value").onclick = function () { this.select(); };
@@ -177,8 +223,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  render_tab('accounts', {accounts: bp.ui.getAddrs()});
-  render_tab('transactions', {transactions: bp.ui.getTxs()});
+  // ------------ //
+  // Accounts tab //
+  // ------------ //
+  render_tab('accounts', { accounts: bp.ui.getAddrs() });
+
+  // --------------- //
+  // Transitions tab //
+  // --------------- //
+  render_tab('transactions', { transactions: bp.ui.getTxs() });
   
   window.onhashchange = function () {
     var openTab = document.querySelector(document.location.hash || "#general");

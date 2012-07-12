@@ -1,4 +1,4 @@
-var JSONRPCoverHTTP = (function (host) {
+var JSONRPCoverHTTP = (function (host, port) {
   var polling_interval = 5000,
       message_id = 0,
       unhandled_requests = {},
@@ -7,17 +7,33 @@ var JSONRPCoverHTTP = (function (host) {
       session_established = false,
       event_handler;
   
+  port = port || "8081";
+  
   return {
     "init": function (handler) {
       event_handler = handler;
     },
     
-    "is_connected": function () {
-      return connected;
+    "isConnected": function () {
+      return connected && host;
     },
     
     "getHost": function () {
       return host;
+    },
+    
+    "changeHost": function (new_host) {
+      if (host != new_host) {
+        connected = false;
+        session_established = false;
+        unhandled_requests = {};
+        lastSend = 0;
+        this.onDisconnect("Changing host.");
+        host = new_host;
+        return true;
+      } else {
+        return false;
+      }
     },
     
     "poll": function poll() {
@@ -25,7 +41,7 @@ var JSONRPCoverHTTP = (function (host) {
     },
     
     "resetSession": function () {
-      chrome.cookies.remove({ url: 'http://' + host, name: 'SESSION' });
+      chrome.cookies.remove({ url: 'http://' + host + ":" + port, name: 'SESSION' });
       session_established = false;
     },
     
@@ -45,7 +61,7 @@ var JSONRPCoverHTTP = (function (host) {
             
             if (xhr.responseText === "Error: session not found") {
               console.log("Session timed out, removing cookie.");
-              chrome.cookies.remove({ url: 'http://' + host, name: 'SESSION' });
+              chrome.cookies.remove({ url: 'http://' + host + ":" + port, name: 'SESSION' });
               session_established = false;
               return;
             }
@@ -114,7 +130,7 @@ var JSONRPCoverHTTP = (function (host) {
         message_id += 1;
       }
       
-      var url = 'http://' + host + '/';
+      var url = 'http://' + host + ":" + port + '/';
       if (outgoing.length) {
         xhr.open('POST', url, true);
         xhr.setRequestHeader("Content-type", "application/json");
@@ -132,7 +148,7 @@ var JSONRPCoverHTTP = (function (host) {
       var that = this;
       
       chrome.cookies.get(
-        { url: 'http://' + host, name: 'SESSION' },
+        { url: 'http://' + host + ":" + port, name: 'SESSION' },
         function (cookie) {
           session_established = Boolean(cookie);
         }
@@ -170,13 +186,18 @@ var JSONRPCoverHTTP = (function (host) {
     },
     
     "onConnect": function () {
-      console.log("Connected to", host);
-      // TODO: Update icon
+      chrome.extension.sendMessage({
+        type: "server_connect",
+        host: host
+      });
     },
     
     "onDisconnect": function (reason) {
-      console.log("Disconnected:", reason);
-      // TODO: Update icon
+      chrome.extension.sendMessage({
+        type: "server_disconnect",
+        host: host,
+        reason: reason
+      });
     }
   };
 });
@@ -253,7 +274,10 @@ var StratumHandler = (function() {
       "blockchain.address.get_history": function (result) {
         var adrs = this.params[0];
         wallet.updateTxHistory(adrs, result);
-        ui.updateBadge();
+        chrome.extension.sendMessage({
+          type: "history_updated",
+          txs: wallet.getLatestTxs()
+        });
       },
       
       "blockchain.transaction.broadcast": function (result) {
