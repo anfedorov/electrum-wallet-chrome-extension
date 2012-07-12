@@ -14,18 +14,19 @@ var UI = function UI (wallet, rpc) {
   });
   
   chrome.extension.onMessage.addListener(function(r) {
-    if (r.type == "server_connect") {
-      connected = true;
-      that.updateBadge();
+    switch (r.type) {
+      case "server_connect":
+        connected = true;
+        that.updateBadge();
+        break;
+      
+      case "server_disconnect":
+        connected = false;
+        that.updateBadge();
+        break;
     }
   });
   
-  chrome.extension.onMessage.addListener(function(r) {
-    if (r.type == "server_disconnect") {
-      connected = false;
-      that.updateBadge();
-    }
-  });
   
   return {
     "init": function () {
@@ -99,7 +100,8 @@ var UI = function UI (wallet, rpc) {
       return {
         balance: balance / 1e8,
         transactions: txs,
-        keys_are_encrypted: wallet.isEncrypted()
+        keys_are_encrypted: wallet.isEncrypted(),
+        idle: !rpc.isProcessing()
       }
     },
     

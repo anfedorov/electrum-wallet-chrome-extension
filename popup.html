@@ -176,7 +176,7 @@
         <h3 id="balance">{{balance}} BTC</h3>
       </div>
       <div class="block">
-        <h4>Recent transactions</h4>
+        <h4>Recent transactions <i id="processing" class="icon-refresh {{#idle}}hidden{{/idle}}"></i></h4>
         <ul id="recent_txs">
           {{#transactions}}
           <li class="transaction {{dir}}">

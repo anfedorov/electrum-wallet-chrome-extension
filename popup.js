@@ -1,16 +1,24 @@
 var bp = chrome.extension.getBackgroundPage();
 
 
-chrome.extension.onMessage.addListener(
-  function(r) {
-    if (r.type == "history_updated") {
+chrome.extension.onMessage.addListener(function(r) {
+  switch (r.type) {
+    case "history_updated":
       var main = document.querySelector('#main'), 
           new_main = render("main", {}, true);
-
       main.querySelector("#balance").innerHTML = new_main.querySelector("#balance").innerHTML;
       main.querySelector("#recent_txs").innerHTML = new_main.querySelector("#recent_txs").innerHTML;
-    }
-  });
+      break;
+    
+    case "processing":
+      document.querySelector("#processing").classList.remove("hidden");
+      break;
+    
+    case "idling":
+      document.querySelector("#processing").classList.add("hidden");
+      break;
+  }
+});
 
 function selectTab(e) {
   var tab_id = e.target.innerText.toLowerCase() + "_tab",

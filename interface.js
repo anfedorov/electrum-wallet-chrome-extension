@@ -1,11 +1,12 @@
 var JSONRPCoverHTTP = (function (host, port) {
-  var polling_interval = 5000,
-      message_id = 0,
-      unhandled_requests = {},
-      lastSend = 0,
-      connected = false,
-      session_established = false,
-      event_handler;
+  var polling_interval = 5000,     // interval at which to poll
+      message_id = 0,              // latest message_id for JSONRPC
+      unhandled_requests = {},     // in format { 'message_id': {'id', 'method', 'params'}}
+      lastSend = 0,                // time of last message
+      connected = false,           // true if last message had return status 200
+      session_established = false, // true if last message had valid cookie
+      processing = false,          // true if unhandled_requests was non-empty after last request
+      event_handler;               // function set in 'init' to handle messages from server
   
   port = port || "8081";
   
@@ -16,6 +17,10 @@ var JSONRPCoverHTTP = (function (host, port) {
     
     "isConnected": function () {
       return connected && host;
+    },
+    
+    "isProcessing": function () {
+      return processing;
     },
     
     "getHost": function () {
@@ -92,8 +97,12 @@ var JSONRPCoverHTTP = (function (host, port) {
             
             if (misc.obj_size(unhandled_requests)) {
               console.log("Waiting for responses", misc.obj_keys(unhandled_requests));
-              polling_interval = 5000;
+              if (!processing) that.onProcessing();
+              processing = true;
+              polling_interval = 3000;
             } else {
+              if (processing) that.onIdling();
+              processing = false;
               polling_interval = 10000;
             }
             
@@ -198,6 +207,14 @@ var JSONRPCoverHTTP = (function (host, port) {
         host: host,
         reason: reason
       });
+    },
+    
+    "onProcessing": function () {
+      chrome.extension.sendMessage({ type: "processing" });
+    },
+    
+    "onIdling": function () {
+      chrome.extension.sendMessage({ type: "idling" });
     }
   };
 });

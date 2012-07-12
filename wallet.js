@@ -262,7 +262,7 @@ var ElectrumWallet = function ElectrumWallet(km) {
       }
       sorted_merged_txs.sort(function (x,y) {
         var dt = (y.timestamp || Infinity) - (x.timestamp || Infinity),
-            di = (y.tx_id || Infinity) - (x.tx_id || Infinity);
+            di = (y.tx_id || 0) - (x.tx_id || 0);
         return dt || di;
       });
       
