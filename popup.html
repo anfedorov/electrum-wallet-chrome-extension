@@ -181,7 +181,7 @@
           {{#transactions}}
           <li class="transaction {{dir}}">
             {{arrow}} {{amount}}
-            {{#num_confs}}[{{num_confs}}] {{/num_confs}}
+            {{#num_confs}}<span class="label label-warning">{{num_confs}}</span> {{/num_confs}}
             {{label}}
           </li>
           {{/transactions}}
