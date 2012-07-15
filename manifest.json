@@ -1,6 +1,6 @@
 {
-  "name": "A Bitcoin Wallet",
-  "version": "0.1",
+  "name": "Electrum Bitcoin Wallet",
+  "version": "0.1.1",
   "options_page": "options.html",
   "background": {
     "scripts": [
@@ -29,5 +29,6 @@
       "default_popup": "popup.html",
       "default_icon": "img/bitcoin_gray.png"
   },
+  "icons": { "128": "img/bitcoin_icon.png" },
   "manifest_version": 2
 }

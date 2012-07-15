@@ -9,7 +9,7 @@ var config = (function () {
   }
   
   options = misc.obj_merge({
-      "default_fee": "0.0005",
+      "default_fee": "0.0000",
       "txs_shown": 5,
       "confs_required": 3,
       "server_address": "electrum.novit.ro"
