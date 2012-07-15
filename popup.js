@@ -100,7 +100,7 @@ function validate_amount(e) {
     if (!this.value || isNaN(this.value) || this.value <= 0) {
       throw "Error!";
     } else {
-      bp.wallet.gatherInputs(Math.round((this.value + Number(bp.config.default_fee)) * 1e8));
+      bp.wallet.gatherInputs(Math.round((Number(this.value) + Number(bp.config.default_fee)) * 1e8));
       this.parentElement.parentElement.parentElement.classList.add("success");
       this.parentElement.parentElement.parentElement.classList.remove("error");
       return true;
