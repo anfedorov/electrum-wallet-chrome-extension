@@ -230,32 +230,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 100);
 
   } else if (typeof(bp.km.password) != "undefined") {
-    var decryptedSeed = bp.wallet.getSeed(),
+    var seed = bp.wallet.getSeed() || bp.Crypto.util.bytesToHex(bp.Crypto.util.randomBytes(16)),
+        decryptedSeed,
         encryptedSeed;
     
-    if (!decryptedSeed) {
-      decryptedSeed = bp.Crypto.util.bytesToHex(bp.Crypto.util.randomBytes(16));
-    }
-    
-    if (bp.km.seedEncrypted(decryptedSeed)) {
-      encryptedSeed = decryptedSeed;
-      decryptedSeed = bp.km.decrypt(encryptedSeed, bp.km.password);
-    }
-
-    if (bp.km.password && !encryptedSeed) {
-      encryptedSeed = bp.km.encrypt(decryptedSeed, bp.km.password);
-      bp.wallet.saveSeed(encryptedSeed);
+    if (bp.km.seedEncrypted(seed)) {
+      decryptedSeed = bp.km.decrypt(seed, bp.km.password);
+      encryptedSeed = seed;
     } else {
-      bp.wallet.saveSeed(decryptedSeed);
+      decryptedSeed = seed;
+      if (bp.km.password) {
+        encryptedSeed = bp.km.encrypt(seed, bp.km.password);
+      }
     }
     
-    var main = render('gen-wallet', {is_encrypted: !!encryptedSeed}),
-        seed = main.querySelector("#seed"),
+    var main = render('gen-wallet', { is_encrypted: !!encryptedSeed }),
+        seedElement = main.querySelector("#seed"),
         progressBar = main.querySelector("#stretch_progress");
     
-    seed.value = encryptedSeed || decryptedSeed;
-    seed.onclick = function () { this.select(); };
-    seed.select();
+    seedElement.value = encryptedSeed || decryptedSeed;
+    seedElement.onclick = function () { this.select(); };
+    seedElement.select();
     
     bp.km.genKeysFromSeed(
       decryptedSeed,
@@ -268,7 +263,10 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (bp.km.password) {
           bp.km.encryptMasterPrivKey(bp.km.password);
+          bp.wallet.saveSeed(encryptedSeed);
           delete bp.km.password;
+        } else {
+          bp.wallet.saveSeed(decryptedSeed);
         }
         
         bp.wallet.extendAddressChain();
