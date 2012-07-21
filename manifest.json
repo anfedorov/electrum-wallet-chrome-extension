@@ -2,7 +2,7 @@
   "name": "Electrum Bitcoin Wallet",
   "version": "0.1.7",
   "options_page": "options.html",
-  "minimum_chrome_version": "19",
+  "minimum_chrome_version": "18",
   "background": {
     "scripts": [
       "lib/bitcoinjs/build/bitcoinjs-min.js",
