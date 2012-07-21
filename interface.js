@@ -195,14 +195,14 @@ var JSONRPCoverHTTP = (function (host, port) {
     },
     
     "onConnect": function () {
-      chrome.extension.sendMessage({
+      (chrome.extension.sendMessage || chrome.extension.sendRequest)({
         type: "server_connect",
         host: host
       });
     },
     
     "onDisconnect": function (reason) {
-      chrome.extension.sendMessage({
+      (chrome.extension.sendMessage || chrome.extension.sendRequest)({
         type: "server_disconnect",
         host: host,
         reason: reason
@@ -210,11 +210,11 @@ var JSONRPCoverHTTP = (function (host, port) {
     },
     
     "onProcessing": function () {
-      chrome.extension.sendMessage({ type: "processing" });
+      (chrome.extension.sendMessage || chrome.extension.sendRequest)({ type: "processing" });
     },
     
     "onIdling": function () {
-      chrome.extension.sendMessage({ type: "idling" });
+      (chrome.extension.sendMessage || chrome.extension.sendRequest)({ type: "idling" });
     }
   };
 });
@@ -291,7 +291,7 @@ var StratumHandler = (function() {
       "blockchain.address.get_history": function (result) {
         var adrs = this.params[0];
         wallet.updateTxHistory(adrs, result);
-        chrome.extension.sendMessage({
+        (chrome.extension.sendMessage || chrome.extension.sendRequest)({
           type: "history_updated",
           txs: wallet.getLatestTxs()
         });
