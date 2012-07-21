@@ -7,13 +7,13 @@ var UI = function UI (wallet, rpc) {
       connected = false,
       that;
   
-  chrome.extension.onMessage.addListener(function (r) {
+  (chrome.extension.onMessage || chrome.extension.onRequest).addListener(function (r) {
     if (r.type == "history_updated") {
       that.updateBadge(r.txs);
     }
   });
   
-  chrome.extension.onMessage.addListener(function(r) {
+  (chrome.extension.onMessage || chrome.extension.onRequest).addListener(function(r) {
     switch (r.type) {
       case "server_connect":
         connected = true;

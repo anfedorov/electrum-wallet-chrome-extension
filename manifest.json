@@ -1,7 +1,8 @@
 {
   "name": "Electrum Bitcoin Wallet",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "options_page": "options.html",
+  "minimum_chrome_version": "19",
   "background": {
     "scripts": [
       "lib/bitcoinjs/build/bitcoinjs-min.js",
@@ -17,7 +18,6 @@
   },
   "permissions": [
     "contextMenus",
-    "tabs",
     "cookies",
     "http://electrum.novit.ro/*",
     "http://uncle-enzo.info/*",

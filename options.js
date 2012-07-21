@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
     generalTab.querySelector("#connection_status").style.color = "red";
   }
   
-  chrome.extension.onMessage.addListener(function(r) {
+  (chrome.extension.onMessage || chrome.extension.onRequest).addListener(function(r) {
     switch (r.type) {
       case "server_connect":
         if (host = bp.rpc.isConnected()) {
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
   
-  chrome.extension.onMessage.addListener(function(r) {
+  (chrome.extension.onMessage || chrome.extension.onRequest).addListener(function(r) {
     
   });
   

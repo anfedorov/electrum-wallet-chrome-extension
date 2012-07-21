@@ -1,7 +1,6 @@
 var bp = chrome.extension.getBackgroundPage();
 
-
-chrome.extension.onMessage.addListener(function(r) {
+(chrome.extension.onMessage || chrome.extension.onRequest).addListener(function(r) {
   switch (r.type) {
     case "history_updated":
       var main = document.querySelector('#main'), 
