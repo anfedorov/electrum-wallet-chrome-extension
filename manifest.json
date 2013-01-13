@@ -1,6 +1,6 @@
 {
   "name": "Electrum Bitcoin Wallet",
-  "version": "0.1.7",
+  "version": "0.1.9.2",
   "options_page": "options.html",
   "minimum_chrome_version": "18",
   "background": {

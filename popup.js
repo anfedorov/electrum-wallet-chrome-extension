@@ -161,6 +161,14 @@ function render(tmplName, tmplData, returnNewDiv) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  setTimeout(function () {
+    document.activeElement.blur();
+  }, 100);
+
+  if (bp.km.isReady()) {
+    document.querySelector('#linktowallet').style.display = 'inline';
+    return;
+  }
   if (bp.km.isReady()) {
     render('main', {sent_success: false});
     var tabs = document.querySelector("#tabs"),

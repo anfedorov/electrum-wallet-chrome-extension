@@ -1,4 +1,4 @@
-var ElectrumWallet = function ElectrumWallet(km) {
+var ElectrumWallet = function ElectrumWallet(km, sh) {
   var walletData = JSON.parse(localStorage.wallet || "{}");
   
   if (!walletData.addresses) walletData.addresses = [];
@@ -6,6 +6,7 @@ var ElectrumWallet = function ElectrumWallet(km) {
   if (!walletData.imported_keys) walletData.imported_keys = {};
   if (!walletData.history) walletData.history = {};
   if (!walletData.labels) walletData.labels = {};
+  if (!walletData.txs) walletData.txs = {};
   
   return {
     "saveSeed": function (seed) {
@@ -232,25 +233,34 @@ var ElectrumWallet = function ElectrumWallet(km) {
           that = this;
       
       all_txs.forEach(function (tx) {
+        return;
+        if (tx == '*') { return; }  // pruned
+        
         var hash = tx.tx_hash,
             height = tx.height;
         
-        if (hash in merged_txs) {
-          merged_txs[hash].value += tx.value;
+        if (hash in walletData.txs) {
+          tx = walletData.txs[hash];
+          if (hash in merged_txs) {
+            merged_txs[hash].value += tx.value;
+          } else {
+            merged_txs[hash] = {
+              hash: hash,
+              value: tx.value,
+              timestamp: tx.timestamp,
+              height: height,
+              tx_id: tx.tx_id,
+              confs: height ? numblocks - height + 1 : 0,
+              label: that.getLabel(hash) || ""
+            };
+          }
+          
+          // if one of the output addr has a label, use that instead of the tx's
+          if (!tx.is_input && that.getLabel(tx.outputs[tx.index])) {
+            merged_txs[hash].label = that.getLabel(tx.outputs[tx.index]);
+          }
         } else {
-          merged_txs[hash] = {
-            hash: hash,
-            value: tx.value,
-            timestamp: tx.timestamp,
-            height: height,
-            tx_id: tx.tx_id,
-            confs: height ? numblocks - height + 1 : 0,
-            label: that.getLabel(hash) || ""
-          };
-        }
-        // if one of the output addr has a label, use that instead of the tx's
-        if (!tx.is_input && that.getLabel(tx.outputs[tx.index])) {
-          merged_txs[hash].label = that.getLabel(tx.outputs[tx.index]);
+          sh.send([["blockchain.transaction.get", [hash, height]]]);
         }
       });
       
@@ -272,6 +282,21 @@ var ElectrumWallet = function ElectrumWallet(km) {
     "setLabel": function (x, label) {
       walletData.labels[x] = label;
       this.extendAddressChain();
+      this.save();
+    },
+    
+    "saveTx": function (tx) {
+      var hash = Crypto.util.bytesToHex(
+        Crypto.SHA256(
+          Crypto.SHA256(
+            Crypto.util.hexToBytes(tx),
+            {asBytes: true}
+          ),
+          {asBytes: true}
+        ).reverse()
+      );
+
+      walletData.txs[hash] = Bitcoin.Transaction.from_serlized_hex(tx);
       this.save();
     },
     

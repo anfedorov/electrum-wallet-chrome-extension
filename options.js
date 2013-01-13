@@ -170,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (bp.km.isEncrypted()) {
     seedTab.querySelector("#is_encrypted").classList.remove("hidden");
+    seedTab.querySelector("#seed_value").style.display = 'none';
     seedTab.querySelector("#is_encrypted form").onsubmit = function () {
       var pass_error = this.querySelector("#pass_error"),
           that = this;

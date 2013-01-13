@@ -242,7 +242,7 @@ var StratumHandler = (function() {
     },
     
     "send": function () {
-      rpc.send.apply(rpc, arguments);
+      rpc && rpc.send && rpc.send.apply(rpc, arguments);
     },
     
     "handle_response": function handle_response(r) {
@@ -291,6 +291,14 @@ var StratumHandler = (function() {
       "blockchain.address.get_history": function (result) {
         var adrs = this.params[0];
         wallet.updateTxHistory(adrs, result);
+        (chrome.extension.sendMessage || chrome.extension.sendRequest)({
+          type: "history_updated",
+          txs: wallet.getLatestTxs()
+        });
+      },
+      
+      "blockchain.transaction.get": function (result) {
+        wallet.saveTx(result);
         (chrome.extension.sendMessage || chrome.extension.sendRequest)({
           type: "history_updated",
           txs: wallet.getLatestTxs()

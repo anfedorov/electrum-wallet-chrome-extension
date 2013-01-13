@@ -6,6 +6,10 @@
     <link type="text/css" href="css/bootstrap.css" rel="stylesheet" />
     <link type="text/css" href="css/bootstrap-responsive.css" rel="stylesheet" />
     <style>
+    div.navbar.navbar-fixed-top {
+      display: none;
+    }
+
     body {
       padding-top: 0px;
     }
@@ -78,12 +82,11 @@
     </script>
 
     <script id="seed-template" type="text/x-handlebars-template">
-      <h3>Seed</h3>
-      <input type="text" name="seed_value" value="" readonly id="seed_value" />
-      <div id="is_encrypted" class="hidden alert alert-info">
+      <!-- <h3 style='padding:0;margin:0'>Seed</h3> -->
+      <input style='margin:0' type="text" name="seed_value" value="" readonly id="seed_value" />
+      <div id="is_encrypted" class="hidden alert alert-warning" style='margin-bottom: 0px'>
         <div id="alert-description">
-          <div>Seed and private keys are encrypted.</div>
-          <div>To decrypt, enter your password:</div>
+          <div>Your seed is encrypted.</div>
         </div>
         <form>
           <fieldset>
@@ -95,7 +98,7 @@
           </fieldset>
         </form>
       </div>
-      <div id="not_encrypted" class="hidden alert alert-warning">
+      <div id="not_encrypted" class="hidden alert alert-warning" style='display:none'>
         <b>Warning!</b>
         <div id="alert-description">
           Seed and private keys are being stored unencrypted. To encrypt them, enter a password:
@@ -162,7 +165,7 @@
     <script src="lib/mustache.js"></script>
     <script src="options.js"></script>
   </head>
-  <body>
+  <body style='padding: 10px'>
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
@@ -196,7 +199,7 @@
     <div id="transactions_tab" class="container tab hidden"></div>
     <div id="about_tab" class="container tab hidden">
       <h3>About</h3>
-      Bitcoin Wallet v0.1.7<br>
+      Bitcoin Wallet v0.1.9<br>
       by Andrey Fedorov (<a href='mailto:anfedorov@gmail.com'>anfedorov@gmail.com</a>)
     </div>
   </body>
